@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
 import { useNavigate } from "react-router-native";
 import { Box } from "@react-native-material/core";
 import { io } from "socket.io-client";
@@ -13,7 +11,7 @@ import { AntDesign } from '@expo/vector-icons';
 let socket;
 
 export default function Login() {
-    const ENDPOINT = "http://10.101.196.136:8080";
+    const ENDPOINT = "http://10.101.196.169:8080";
 
     const theme = useTheme()
 
@@ -40,7 +38,7 @@ export default function Login() {
             }
             else {
                 console.log("로그인성공")
-                navigate("/post-MainPage");
+                navigate("/post-MainPage", { state: result });
             }
         })
     }
