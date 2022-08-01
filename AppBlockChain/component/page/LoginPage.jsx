@@ -1,19 +1,46 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-native";
-import { Box } from "@react-native-material/core";
 import { io } from "socket.io-client";
-import { Alert } from "react-native";
+import { Text } from 'react-native-paper'
+import { Alert, TouchableOpacity, KeyboardAvoidingView, StyleSheet, View } from "react-native";
+import { useMoralis } from "react-moralis";
 //#region mui
-import { Stack, useTheme, Text, TextInput, Button, ActivityIndicator } from "@react-native-material/core";
-import { AntDesign } from '@expo/vector-icons';
 //#endregion
+
+import Logo from '../components/Logo'
+import Header from '../components/Header'
+import Button from '../components/Button'
+import TextInput from '../components/TextInput'
 
 let socket;
 
-export default function Login() {
-    const ENDPOINT = "http://10.101.196.169:8080";
+export default function LoginPage() {
+    const {
+        authenticate,
+        isWeb3Enabled,
+        isAuthenticated,
+        user,
+        enableWeb3,
+        Moralis,
+    } = useMoralis();
 
-    const theme = useTheme()
+    async function authWalletConnect() {
+        const user = authenticate({
+            provider: "walletconnect",
+            chainId: 56,
+            // mobileLinks: [
+            //   "metamask",
+            //   "trust",
+            //   "rainbow",
+            //   "argent",
+            //   "imtoken",
+            //   "pillar",
+            // ],
+            signingMessage: "Welcome!",
+        });
+        console.log(user);
+    }
+    const ENDPOINT = "http://10.101.196.169:8080";
 
     const navigate = useNavigate();
 
@@ -22,7 +49,7 @@ export default function Login() {
     const [pw, setPw] = useState("");
     //#endregion
 
-    //#region useEffectr
+    //#region useEffect
     useEffect(() => {
         socket = io(ENDPOINT)
     }, []);
@@ -42,49 +69,57 @@ export default function Login() {
             }
         })
     }
+
     //#region 렌더링
     return (
-        <Stack m={50} spacing={2}>
-            <Stack center m={50}>
-                <Box>
-                    <AntDesign name="lock" size={50} color="black" />
-                </Box>
-                <Box>
-                    <Text variant="h5">
-                        Login
-                    </Text>
-                </Box>
-            </Stack>
-            <Stack m={20}>
-                <TextInput
-                    label="ID"
-                    variant="outlined"
-                    onChangeText={(e) => setId(e)}
-                />
-                <TextInput
-                    label="Password"
-                    variant="outlined"
-                    secureTextEntry={true}
-                    onChangeText={(e) => setPw(e)}
-                />
-            </Stack>
-            <Stack m={30}>
-                <Button
-                    type="submit"
-                    title="Login"
-                    variant="contained"
-                    onPress={Login}
-                />
-            </Stack>
-            <Stack m={30}>
-                <Button
-                    type="submit"
-                    title="NewMember"
-                    variant="contained"
-                />
-            </Stack>
-        </Stack>
+        <KeyboardAvoidingView style={styles.container} behavior="padding">
+            <Logo />
+            <Header>Login</Header>
+            <TextInput
+                label="ID"
+                returnKeyType="next"
+                onChangeText={(text) => setId(text)}
+                autoCapitalize="none"
+            />
+            <TextInput
+                label="Password"
+                returnKeyType="done"
+                onChangeText={(text) => setPw(text)}
+                secureTextEntry
+            />
+            <Button mode="contained" onPress={Login}>
+                Login
+            </Button>
+            <Button mode="contained" onPress={() => authWalletConnect()}>
+                지갑 연결
+            </Button>
+            <View style={styles.row}>
+                <Text>Don’t have an account? </Text>
+                <TouchableOpacity onPress={() => navigate("/post-RegisterPage")}>
+                    <Text style={styles.link}>Sign up</Text>
+                </TouchableOpacity>
+            </View>
+        </KeyboardAvoidingView>
     );
     //#endregion
 }
 
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        padding: 20,
+        width: '100%',
+        maxWidth: 340,
+        alignSelf: 'center',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    row: {
+        flexDirection: 'row',
+        marginTop: 4,
+    },
+    link: {
+        fontWeight: 'bold',
+        color: '#560CCE',
+    },
+})
