@@ -3,20 +3,60 @@ import { useNavigate } from "react-router-native";
 import { Box } from "@react-native-material/core";
 import { io } from "socket.io-client";
 import { Alert } from "react-native";
+import { useMoralis} from "react-moralis";
 //#region mui
 import { Stack, useTheme, Text, TextInput, Button, ActivityIndicator } from "@react-native-material/core";
 import { AntDesign } from '@expo/vector-icons';
 //#endregion
 
 let socket;
+let connector;
 
 export default function Login() {
-    const ENDPOINT = "http://10.101.196.169:8080";
 
-    const theme = useTheme()
+    const ENDPOINT = "http://10.101.192.219:8080";
 
     const navigate = useNavigate();
-
+    
+    const {
+        authenticate,
+        isWeb3Enabled,
+        isAuthenticated,
+        user,
+        enableWeb3,
+        Moralis,
+      } = useMoralis();
+    
+      async function authWalletConnect() {
+        const user = authenticate({
+          provider: "walletconnect",
+          chainId: 56,
+          // mobileLinks: [
+          //   "metamask",
+          //   "trust",
+          //   "rainbow",
+          //   "argent",
+          //   "imtoken",
+          //   "pillar",
+          // ],
+          signingMessage: "Welcome!",
+        });
+        console.log(user);
+      }
+    
+      useEffect(() => {
+        if (!isWeb3Enabled && isAuthenticated) {
+          enableWeb3({ provider: "walletconnect", chainId: 56 });
+          console.log("web3 activated");
+        }
+      }, [isWeb3Enabled, isAuthenticated, enableWeb3]);
+    
+    //   document.addEventListener("visibilitychange", () => {
+    //     if (document.visibilityState === "hidden") {
+    //       window.localStorage.removeItem("WALLETCONNECT_DEEPLINK_CHOICE");
+    //     }
+    //   });
+  
     //#region useState 변수
     const [id, setId] = useState("");
     const [pw, setPw] = useState("");
@@ -42,7 +82,9 @@ export default function Login() {
             }
         })
     }
+       
     //#region 렌더링
+    if (!isAuthenticated && !user) {
     return (
         <Stack m={50} spacing={2}>
             <Stack center m={50}>
@@ -83,8 +125,33 @@ export default function Login() {
                     variant="contained"
                 />
             </Stack>
+            <Stack>
+            <Button
+            colorScheme="green"
+            size="lg"
+            onClick={() => authWalletConnect()}
+            title="Wallet Connect">
+          </Button>
+            </Stack>
         </Stack>
     );
     //#endregion
+}
+
+return (
+    <Box display={"block"} p={35} className="App">
+      <LogoutButton />
+      <Center>
+        <img width={500} height={500} src={logo} alt="logo" />
+      </Center>
+
+      <Center>
+        <Heading as="h2" size="3xl" p={10}>
+          Wallet Logged in
+        </Heading>
+      </Center>
+    </Box>
+  );
+
 }
 
